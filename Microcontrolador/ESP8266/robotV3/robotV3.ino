@@ -33,14 +33,14 @@ DHT dht(DHTPIN, DHTTYPE);
 int outputPins[] = {IN1, IN2, IN3, IN4};
 
 /* Wifi */
-const char *ssid = "*****";
-const char *password = "*****";
+const char *ssid = "*********";
+const char *password = "*********";
 WiFiClient espClient;
 
 /* MQTT */
 #define MSG_BUFFER_SIZE 50
 PubSubClient MQTTclient(espClient);
-const char *mqtt_server = "*****";
+const char *mqtt_server = "*********";
 char msg[MSG_BUFFER_SIZE];
 
 void setup() {
@@ -114,106 +114,93 @@ void onMessage(char *topic, byte *payload, unsigned int length) {
   if (String(topic) == "grupo2/control") {
     int action = messageTemp.toInt();
     motorHandler(action);
-<<<<<<< HEAD
   } else if (String(topic) == "grupo2/servo") {
     int value = messageTemp.toInt();
     if (value > 180) {
       value = 180;
     } else if (value < 0) {
       value = 0;
-      == == == =
-    } else if (String(topic) == "grupo2/servo") {
-      int value = messageTemp.toInt();
-      if (value > 180) {
-        value = 180;
-      } else if (value < 0) {
-        value = 0;
->>>>>>> c6101d04e108caab2a886a9f6e92adecff4534ca
-      }
-      tiltservo.write(value);
     }
+    tiltservo.write(value);
   }
+}
 
-  void reconnect() {
-    while (!MQTTclient.connected()) {
-      Serial.print("Conectando a MQTT...");
+void reconnect() {
+  while (!MQTTclient.connected()) {
+    Serial.print("Conectando a MQTT...");
+
+    display.clear();
+    display.drawString(0, 0, "Conectando a MQTT");
+
+    String clientId = "RobotClient-0";
+    if (MQTTclient.connect(clientId.c_str())) {
+      Serial.println("Successful MQTT connection");
+      MQTTclient.subscribe("grupo2/control");
+      MQTTclient.subscribe("grupo2/servo");
 
       display.clear();
-      display.drawString(0, 0, "Conectando a MQTT");
+      display.drawString(0, 0, "Conectado a MQTT");
+      display.display();
+    } else {
+      Serial.print("MQTT connection failed, rc=");
+      Serial.print(MQTTclient.state());
+      Serial.println(" trying again in 2 seconds");
 
-      String clientId = "RobotClient-0";
-      if (MQTTclient.connect(clientId.c_str())) {
-        Serial.println("Successful MQTT connection");
-        MQTTclient.subscribe("grupo2/control");
-        MQTTclient.subscribe("grupo2/servo");
-
-        display.clear();
-        display.drawString(0, 0, "Conectado a MQTT");
-        display.display();
-      } else {
-        Serial.print("MQTT connection failed, rc=");
-        Serial.print(MQTTclient.state());
-        Serial.println(" trying again in 2 seconds");
-
-        display.clear();
-        display.drawString(0, 0, "Error conexion MQTT");
-        display.display();
-        delay(2000);
-      }
+      display.clear();
+      display.drawString(0, 0, "Error conexion MQTT");
+      display.display();
+      delay(2000);
     }
   }
+}
 
-  void motorHandler(int dir) {
-    switch (dir) {
-    case 0:
-      digitalWrite(IN1, LOW);
-      digitalWrite(IN2, LOW);
-      digitalWrite(IN3, LOW);
-      digitalWrite(IN4, LOW);
-      Serial.println("Stop");
-      break;
-    case 1:
-      digitalWrite(IN1, HIGH);
-      digitalWrite(IN2, LOW);
-      digitalWrite(IN3, LOW);
-      digitalWrite(IN4, HIGH);
-<<<<<<< HEAD
-      Serial.println("Backward");
-      == == == =
-                   Serial.println("Backward"); 
->>>>>>> c6101d04e108caab2a886a9f6e92adecff4534ca
-      break;
-    case 2:
-      digitalWrite(IN1, LOW);
-      digitalWrite(IN2, HIGH);
-      digitalWrite(IN3, HIGH);
-      digitalWrite(IN4, LOW);
-      Serial.println("Forward");
-      break;
-    case 3:
-      digitalWrite(IN1, HIGH);
-      digitalWrite(IN2, LOW);
-      digitalWrite(IN3, HIGH);
-      digitalWrite(IN4, LOW);
-      Serial.println("Right");
-      break;
-    case 4:
-      digitalWrite(IN1, LOW);
-      digitalWrite(IN2, HIGH);
-      digitalWrite(IN3, LOW);
-      digitalWrite(IN4, HIGH);
-      Serial.println("Left");
-      break;
-    }
+void motorHandler(int dir) {
+  switch (dir) {
+  case 0:
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, LOW);
+    digitalWrite(IN3, LOW);
+    digitalWrite(IN4, LOW);
+    Serial.println("Stop");
+    break;
+  case 1:
+    digitalWrite(IN1, HIGH);
+    digitalWrite(IN2, LOW);
+    digitalWrite(IN3, LOW);
+    digitalWrite(IN4, HIGH);
+    Serial.println("Backward");
+    break;
+  case 2:
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, HIGH);
+    digitalWrite(IN3, HIGH);
+    digitalWrite(IN4, LOW);
+    Serial.println("Forward");
+    break;
+  case 3:
+    digitalWrite(IN1, HIGH);
+    digitalWrite(IN2, LOW);
+    digitalWrite(IN3, HIGH);
+    digitalWrite(IN4, LOW);
+    Serial.println("Right");
+    break;
+  case 4:
+    digitalWrite(IN1, LOW);
+    digitalWrite(IN2, HIGH);
+    digitalWrite(IN3, LOW);
+    digitalWrite(IN4, HIGH);
+    Serial.println("Left");
+    break;
   }
+}
 
-  void sendData() {
-    float t = dht.readTemperature();
-    MQTTclient.publish("grupo2/dhttemp", String(t).c_str());
+void sendData() {
+  float t = dht.readTemperature();
+  MQTTclient.publish("grupo2/dhttemp", String(t).c_str());
 
-    float h = dht.readHumidity();
-    MQTTclient.publish("grupo2/dhthum", String(h).c_str());
+  float h = dht.readHumidity();
+  MQTTclient.publish("grupo2/dhthum", String(h).c_str());
 
-    int b = analogRead(A0);
-    MQTTclient.publish("grupo2/robbatt", String(b).c_str());
-  }
+  int b = analogRead(A0);
+  MQTTclient.publish("grupo2/robbatt", String(b).c_str());
+}
